@@ -285,6 +285,7 @@
 ./service/memory                                        minix-base
 ./service/mydriver                                      minix-base
 ./service/myserver                                      minix-base
+./service/myserver2					minix-base
 ./service/mfs                                           minix-base
 ./service/mib                                           minix-base
 ./service/pfs                                           minix-base

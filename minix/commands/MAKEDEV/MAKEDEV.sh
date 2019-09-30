@@ -42,7 +42,7 @@ STD_DEVICES="
 	eepromb3s54 eepromb3s55 eepromb3s56 eepromb3s57
 	fb0 fbd filter hello
 	i2c-1 i2c-2 i2c-3
-	klog ptmx random
+	klog mydriver ptmx random
 	sht21b1s40 sht21b2s40 sht21b3s40
 	tsl2550b1s39 tsl2550b2s39 tsl2550b3s39
 	ttyp0 ttyp1 ttyp2 ttyp3 ttyp4 ttyp5 ttyp6 ttyp7 ttyp8 ttyp9
@@ -136,6 +136,7 @@ Where key is one of the following:
   filter                  # Make /dev/filter
   fbd                     # Make /dev/fbd
   hello                   # Make /dev/hello
+  mydriver                # Make /dev/mydriver
   video                   # Make /dev/video
   pci                     # Make /dev/pci
   vnd0 vnd0p0 vnd0p0s0 .. # Make vnode disks /dev/vnd[0-7] and (sub)partitions
@@ -344,6 +345,10 @@ do
 	klog)
 		# Logging device.
 		makedev ${dev} c 15 0 ${uname} ${gname} ${permissions}
+		;;
+	mydriver)
+		# Mydriver driver
+		makedev ${dev} c 18 0 ${uname} ${gname} 644
 		;;
 	pc[0-3]|at[0-3]|qd[0-3]|ps[0-3]|pat[0-3]|qh[0-3]|PS[0-3])
 		# Obsolete density locked floppy disk drive n.

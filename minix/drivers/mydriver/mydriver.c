@@ -83,6 +83,10 @@ static int mydriver_open(devminor_t minor, int access, endpoint_t user_endpt);
 static int mydriver_close(devminor_t minor);
 static ssize_t mydriver_read(devminor_t minor, u64_t position, endpoint_t endpt,
     cp_grant_id_t grant, size_t size, int flags, cdev_id_t id);
+static ssize_t hello_write(devminor_t UNUSED(minor), u64_t position,
+                           endpoint_t endpt, cp_grant_id_t grant, size_t size, int UNUSED(flags),
+                           cdev_id_t UNUSED(id));
+
 
 /* Entry points to the hello driver. */
 static struct chardriver mydriver_tab =
@@ -90,6 +94,7 @@ static struct chardriver mydriver_tab =
  .cdr_open	= mydriver_open,
  .cdr_close	= mydriver_close,
  .cdr_read	= mydriver_read,
+ .cdr_write	= hello_write,
 };
 
 static int mydriver_open(devminor_t UNUSED(minor), int UNUSED(access),
@@ -130,6 +135,26 @@ static ssize_t mydriver_read(devminor_t UNUSED(minor), u64_t position,
     return ret;
  
   /* Return the number of bytes read. */
+  return size;
+}
+
+static ssize_t hello_write(devminor_t UNUSED(minor), u64_t position,
+                           endpoint_t endpt, cp_grant_id_t grant, size_t size, int UNUSED(flags),
+                           cdev_id_t UNUSED(id))
+{
+  int ret;
+  char buf[1025];
+ 
+  printf("hello_write(position=%llu, size=%zu)\n", position, size);
+ 
+  if (size > 1024)
+    size = (size_t)(1024);	/* limit size */
+ 
+  ret = sys_safecopyfrom(endpt, grant, 0, (vir_bytes) buf, size);
+  printf("ret=%d\n", ret);
+
+  buf[1024] = 0;
+  printf("received=%s\n", buf);
   return size;
 }
 

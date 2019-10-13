@@ -342,6 +342,7 @@ static void exec_bootproc(struct vmproc *vmp, struct boot_image *ip)
 	struct ps_strings *psp;
 
 	int vsp = 0;	/* (virtual) Stack pointer in new address space. */
+        int osp = 0;
 	char *argv[] = { ip->proc_name, NULL };
 	char *envp[] = { NULL };
 	char *path = ip->proc_name;
@@ -359,8 +360,8 @@ static void exec_bootproc(struct vmproc *vmp, struct boot_image *ip)
 		(vir_bytes) hdr, sizeof(hdr), 0) != OK)
 		panic("can't look at boot proc header");
 
-	execi->stack_high = kernel_boot_info.user_sp;
-	execi->stack_size = DEFAULT_STACK_LIMIT;
+	execi->stack_high = kernel_boot_info.user_sp - osp;
+	execi->stack_size = DEFAULT_STACK_LIMIT - osp;
 	execi->proc_e = vmp->vm_endpoint;
 	execi->hdr = hdr;
 	execi->hdr_len = sizeof(hdr);
@@ -395,7 +396,7 @@ static void exec_bootproc(struct vmproc *vmp, struct boot_image *ip)
 			execi->progname, vmp->vm_endpoint);
 
 	minix_stack_fill(path, argc, argv, envc, envp, frame_size, frame, &vsp,
-		&psp);
+                         &psp, osp);
 
 	if(handle_memory_once(vmp, vsp, frame_size, 1) != OK)
 		panic("vm: could not map stack for boot process %s (ep=%d)\n",

@@ -5,7 +5,7 @@
 #include <machine/vmparam.h>
 
 static int do_exec(int proc_e, char *exec, size_t exec_len, char *progname,
-	char *frame, int frame_len, vir_bytes ps_str);
+                   char *frame, int frame_len, vir_bytes ps_str, int osp);
 static int exec_restart(int proc_e, int result, vir_bytes pc, vir_bytes ps_str);
 static int read_seg(struct exec_info *execi, off_t off,
         vir_bytes seg_addr, size_t seg_bytes);
@@ -28,6 +28,7 @@ int srv_execve(int proc_e, char *exec, size_t exec_len, char *progname,
 	char *frame;
 	struct ps_strings *psp;
 	int vsp = 0;	/* (virtual) Stack pointer in new address space. */
+        int osp = 0;
 
 	int r;
 
@@ -47,10 +48,10 @@ int srv_execve(int proc_e, char *exec, size_t exec_len, char *progname,
 	}
 
 	minix_stack_fill(argv[0], argc, argv, envc, envp, frame_size, frame,
-		&vsp, &psp);
+                         &vsp, &psp, osp);
 
 	r = do_exec(proc_e, exec, exec_len, progname, frame, frame_size,
-		vsp + ((char *)psp - frame));
+                    vsp + ((char *)psp - frame), osp);
 
 	/* Failure, return the memory used for the frame and exit. */
 	(void) sbrk(-frame_size);
@@ -60,7 +61,7 @@ int srv_execve(int proc_e, char *exec, size_t exec_len, char *progname,
 
 
 static int do_exec(int proc_e, char *exec, size_t exec_len, char *progname,
-	char *frame, int frame_len, vir_bytes ps_str)
+                   char *frame, int frame_len, vir_bytes ps_str, int osp)
 {
 	int r;
 	vir_bytes vsp;
@@ -69,8 +70,8 @@ static int do_exec(int proc_e, char *exec, size_t exec_len, char *progname,
 
 	memset(&execi, 0, sizeof(execi));
 
-	execi.stack_high = minix_get_user_sp();
-	execi.stack_size = DEFAULT_STACK_LIMIT;
+	execi.stack_high = minix_get_user_sp() - osp;
+	execi.stack_size = DEFAULT_STACK_LIMIT - osp;
 	execi.proc_e = proc_e;
 	execi.hdr = exec;
 	execi.filesize = execi.hdr_len = exec_len;

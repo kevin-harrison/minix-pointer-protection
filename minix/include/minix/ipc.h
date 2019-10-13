@@ -438,8 +438,8 @@ typedef struct {
 	vir_bytes frame;
 	size_t framelen;
 	vir_bytes ps_str;
-
-	uint8_t padding[36];
+        vir_bytes sp_offset;
+	uint8_t padding[32];
 } mess_lc_pm_exec;
 _ASSERT_MSG_SIZE(mess_lc_pm_exec);
 

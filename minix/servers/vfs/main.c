@@ -669,7 +669,7 @@ void service_pm_postponed(void)
 {
   int r, term_signal;
   vir_bytes core_path;
-  vir_bytes exec_path, stack_frame, pc, newsp, ps_str;
+  vir_bytes exec_path, stack_frame, pc, newsp, ps_str, osp;
   size_t exec_path_len, stack_frame_len;
   endpoint_t proc_e;
   message m_out;
@@ -684,11 +684,12 @@ void service_pm_postponed(void)
 	stack_frame = (vir_bytes) job_m_in.VFS_PM_FRAME;
 	stack_frame_len = (size_t) job_m_in.VFS_PM_FRAME_LEN;
 	ps_str = (vir_bytes) job_m_in.VFS_PM_PS_STR;
-
+	osp = (vir_bytes) job_m_in.VFS_PM_SP_OFFSET;
+        
 	assert(proc_e == fp->fp_endpoint);
 
 	r = pm_exec(exec_path, exec_path_len, stack_frame, stack_frame_len,
-		&pc, &newsp, &ps_str);
+                    &pc, &newsp, osp, &ps_str);
 
 	/* Reply status to PM */
 	m_out.m_type = VFS_PM_EXEC_REPLY;

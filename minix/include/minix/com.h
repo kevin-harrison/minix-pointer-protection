@@ -566,6 +566,7 @@
 #  define VFS_PM_FRAME		m7_p2	/* arguments and environment */
 #  define VFS_PM_FRAME_LEN	m7_i3	/* size of frame */
 #  define VFS_PM_PS_STR		m7_i5	/* ps_strings pointer */
+#  define VFS_PM_SP_OFFSET	m7_i4	/* stack pointer offset */
 
 /* Additional parameters for PM_EXEC_REPLY and PM_CORE_REPLY */
 #  define VFS_PM_STATUS		m7_i2	/* OK or failure */

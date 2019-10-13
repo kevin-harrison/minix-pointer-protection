@@ -48,6 +48,7 @@ do_exec(void)
 	m.VFS_PM_FRAME = (void *)m_in.m_lc_pm_exec.frame;
 	m.VFS_PM_FRAME_LEN = m_in.m_lc_pm_exec.framelen;
 	m.VFS_PM_PS_STR = m_in.m_lc_pm_exec.ps_str;
+	m.VFS_PM_SP_OFFSET = m_in.m_lc_pm_exec.sp_offset;
 
 	tell_vfs(mp, &m);
 

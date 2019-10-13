@@ -10,6 +10,8 @@
 #include <minix/param.h>
 #include <sys/exec_elf.h>
 #include <sys/exec.h>
+#include <fcntl.h>
+#include <stdio.h>
 
 int execve(const char *path, char * const *argv, char * const *envp)
 {
@@ -21,6 +23,27 @@ int execve(const char *path, char * const *argv, char * const *envp)
 	char *frame;
 	struct ps_strings *psp;
 	int vsp = 0;	/* (virtual) Stack pointer in new address space. */
+	int osp = 0;	/* Stack pointer offset . */
+
+        int random_f = open("/dev/urandom", O_RDONLY);
+        if (random_f < 0) {
+          printf("EXECVE: Failed to open the random data\n");
+          osp = 0;
+        }
+        else {
+          unsigned int random_d;
+          ssize_t result = read(random_f, &random_d, sizeof random_d);
+          if (result < 0) {
+            printf("EXECVE: Failed to read the random data\n");
+            osp = 0;
+          }
+          else {
+            osp = (random_d % 10)*4096;
+          }
+        }
+        // osp = 4096*2;
+        printf("LIBC: stack offset %d\n", osp);
+ 
 
 	minix_stack_params(path, argv, envp, &frame_size, &overflow,
 		&argc, &envc);
@@ -38,7 +61,7 @@ int execve(const char *path, char * const *argv, char * const *envp)
 	}
 
 	minix_stack_fill(path, argc, argv, envc, envp, frame_size, frame,
-	       	&vsp, &psp);
+                         &vsp, &psp, osp);
 
 	/* Clear unused message fields */
 	memset(&m, 0, sizeof(m));
@@ -49,6 +72,7 @@ int execve(const char *path, char * const *argv, char * const *envp)
 	m.m_lc_pm_exec.frame = (vir_bytes)frame;
 	m.m_lc_pm_exec.framelen = frame_size;
 	m.m_lc_pm_exec.ps_str = (vir_bytes)(vsp + ((char *)psp - frame));
+        m.m_lc_pm_exec.sp_offset = (vir_bytes)osp;
 
 	(void) _syscall(PM_PROC_NR, PM_EXEC, &m);
 

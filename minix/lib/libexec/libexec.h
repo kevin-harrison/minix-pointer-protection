@@ -31,6 +31,7 @@ struct exec_info {
     gid_t new_gid;                      /* Process GID after exec */
     int allow_setuid;                   /* Allow set{u,g}id execution? */
     vir_bytes stack_size;		/* Desired stack size */
+    vir_bytes stack_offset;		/* Desired stack offset */
     vir_bytes load_offset;		/* Desired load offset */
     vir_bytes text_size;		/* Text segment size */
     vir_bytes data_size;		/* Data segment size */

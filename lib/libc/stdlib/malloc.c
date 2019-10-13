@@ -561,6 +561,27 @@ malloc_init(void)
     if (page_dir == MAP_FAILED)
 	wrterror("mmap(2) failed, check limits.\n");
 
+    int oheap = 0;
+#ifndef MALLOC_NO_SYSCALLS
+    // Warning: printf causes kernel panic at this point
+    int random_f = open("/dev/urandom", O_RDONLY);
+    if (random_f < 0) {
+      oheap = 0;
+    }
+    else {
+      unsigned int random_d;
+      ssize_t result = read(random_f, &random_d, sizeof random_d);
+      if (result < 0) {
+	oheap = 0;
+      }
+      else {
+	oheap = (random_d % 10)*4096;
+      }
+    }
+#endif
+    sbrk(oheap);
+
+
     /*
      * We need a maximum of malloc_pageshift buckets, steal these from the
      * front of the page_directory;

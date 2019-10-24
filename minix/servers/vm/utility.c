@@ -492,3 +492,23 @@ void adjust_proc_refs()
        }
 }
 
+/*===========================================================================*
+*			      do_debug					   *
+*===========================================================================*/
+int do_debug(message *msg)
+{
+  endpoint_t proc;
+  struct vmproc *vmp;
+
+  if(vm_isokendpt(msg->VMPCTL_WHO, &proc) != OK) {
+    printf("VM: bogus endpoint VM_PROCCTL %ld\n",
+	   msg->VMPCTL_WHO);
+    return EINVAL;
+  }
+
+  printf("VM: DEBUG ivoked by %d\n", msg->m_source);
+
+  vmp = &vmproc[proc];
+  map_printmap(vmp);
+  return OK;
+}

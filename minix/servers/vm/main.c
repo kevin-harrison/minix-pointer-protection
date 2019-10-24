@@ -573,6 +573,8 @@ void init_vm(void)
 
 	/* getrusage */
 	CALLMAP(VM_GETRUSAGE, do_getrusage);
+        /* debug memory regions */
+        CALLMAP(VM_PT_DEBUG, do_debug);
 
 	/* Mark VM instances. */
 	num_vm_instances = 1;

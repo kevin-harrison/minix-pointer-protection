@@ -4,6 +4,12 @@
 #include <minix/chardriver.h>
 #include "mydriver.h"
  
+#include <minix/timers.h>
+#include <include/arch/i386/include/archtypes.h>
+#include "kernel/proc.h"
+#include <minix/sysinfo.h>
+#include "servers/pm/mproc.h"
+
 /* SEF functions and variables. */
 static void sef_local_startup(void);
 static int sef_cb_init(int type, sef_init_info_t *info);
@@ -83,7 +89,7 @@ static int mydriver_open(devminor_t minor, int access, endpoint_t user_endpt);
 static int mydriver_close(devminor_t minor);
 static ssize_t mydriver_read(devminor_t minor, u64_t position, endpoint_t endpt,
     cp_grant_id_t grant, size_t size, int flags, cdev_id_t id);
-static ssize_t hello_write(devminor_t UNUSED(minor), u64_t position,
+static ssize_t mydriver_write(devminor_t UNUSED(minor), u64_t position,
                            endpoint_t endpt, cp_grant_id_t grant, size_t size, int UNUSED(flags),
                            cdev_id_t UNUSED(id));
 
@@ -94,12 +100,17 @@ static struct chardriver mydriver_tab =
  .cdr_open	= mydriver_open,
  .cdr_close	= mydriver_close,
  .cdr_read	= mydriver_read,
- .cdr_write	= hello_write,
+ .cdr_write	= mydriver_write,
 };
+
+char received_msg[1024];
+int received_pos = 0;
 
 static int mydriver_open(devminor_t UNUSED(minor), int UNUSED(access),
                       endpoint_t UNUSED(user_endpt))
 {
+  received_pos = 0;
+  received_msg[0] = '\0';
   printf("mydriver_open(). Called %d time(s).\n", ++open_counter);
   return OK;
 }
@@ -138,23 +149,64 @@ static ssize_t mydriver_read(devminor_t UNUSED(minor), u64_t position,
   return size;
 }
 
-static ssize_t hello_write(devminor_t UNUSED(minor), u64_t position,
-                           endpoint_t endpt, cp_grant_id_t grant, size_t size, int UNUSED(flags),
-                           cdev_id_t UNUSED(id))
+static int vm_debug(endpoint_t ep)
 {
-  int ret;
-  char buf[1025];
- 
-  printf("hello_write(position=%llu, size=%zu)\n", position, size);
- 
-  if (size > 1024)
-    size = (size_t)(1024);	/* limit size */
- 
-  ret = sys_safecopyfrom(endpt, grant, 0, (vir_bytes) buf, size);
-  printf("ret=%d\n", ret);
+  message m;
+  int result;
 
-  buf[1024] = 0;
-  printf("received=%s\n", buf);
+  memset(&m, 0, sizeof(m));
+
+  m.VMPCTL_WHO = ep;
+  result = _taskcall(VM_PROC_NR, VM_PT_DEBUG, &m);
+
+  return(result);
+}
+
+struct proc proc[NR_TASKS + NR_PROCS];
+struct mproc mproc[NR_PROCS];
+static ssize_t mydriver_write(devminor_t UNUSED(minor), u64_t position,
+			  endpoint_t endpt, cp_grant_id_t grant, size_t size, int UNUSED(flags),
+			  cdev_id_t UNUSED(id))
+{
+  int r;
+  printf("hello_write(position=%llu, size=%zu)\n", position, size);
+
+  if (size > 1023 - received_pos)
+    size = (size_t)(1023 - received_pos);	/* limit size */
+
+  r = sys_safecopyfrom(endpt, grant, 0, (vir_bytes) (received_msg+received_pos), size);
+  if (r != OK) {
+    printf("MYSERVERDRIVER: warning: couldn't copy data: %d\n", r);
+    return OK;
+  }
+  received_pos += size;
+  received_msg[received_pos] = '\0';
+  printf("received=%s\n", received_msg);
+
+  if (received_msg[received_pos-1] != '\n')
+    return size;
+  int pid = atoi(received_msg);
+
+  /* Retrieve and check the PM process table. */
+  r = getsysinfo(PM_PROC_NR, SI_PROC_TAB, mproc, sizeof(mproc));
+  if (r != OK) {
+    printf("MYDRIVER: warning: couldn't get copy of PM process table: %d\n", r);
+    return OK;
+  }
+  endpoint_t end_p = 0;
+  for (int mslot = 0; mslot < NR_PROCS; mslot++) {
+    if (mproc[mslot].mp_flags & IN_USE) {
+      printf("%d %d\n", mproc[mslot].mp_pid, mproc[mslot].mp_endpoint);
+      if (mproc[mslot].mp_pid == pid)
+        end_p = mproc[mslot].mp_endpoint;
+    }
+  }
+
+  vm_debug(end_p);
+
+  received_pos = 0;
+  received_msg[0] = '\0';
+
   return size;
 }
 

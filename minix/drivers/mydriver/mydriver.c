@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <minix/syslib.h>
 #include <minix/chardriver.h>
+#include <minix/myserver.h>
 #include "mydriver.h"
  
 /* SEF functions and variables. */
@@ -155,6 +156,9 @@ static ssize_t hello_write(devminor_t UNUSED(minor), u64_t position,
 
   buf[1024] = 0;
   printf("received=%s\n", buf);
+
+  myserver_sys1();
+  
   return size;
 }
 

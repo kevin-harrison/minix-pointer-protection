@@ -18,6 +18,7 @@ SRCS+=  \
 	copyfd.c \
 	cpuavg.c \
 	ds.c	\
+	myserver.c	\
 	env_get_prm.c \
 	env_panic.c \
 	env_parse.c \

@@ -1199,6 +1199,7 @@
 ./usr/include/minix/drivers.h                           minix-comp
 ./usr/include/minix/drvlib.h                            minix-comp
 ./usr/include/minix/ds.h                                minix-comp
+./usr/include/minix/myserver.h                          minix-comp
 ./usr/include/minix/endpoint.h                          minix-comp
 ./usr/include/minix/fb.h                                minix-comp
 ./usr/include/minix/fsdriver.h                          minix-comp

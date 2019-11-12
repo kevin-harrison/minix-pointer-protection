@@ -41,6 +41,7 @@ static void handle_work(void (*func)(void));
 
 static int get_work(void);
 static void service_pm(void);
+static void service_myserver(void);
 static int unblock(struct fproc *rfp);
 
 /* SEF functions and variables. */
@@ -92,6 +93,9 @@ int main(void)
 		/* Special control messages from PM */
 		service_pm();
 		continue;
+	} else if (who_e == MYSERVER_PROC_NR) {
+	  service_myserver();
+	  continue;
 	} else if (is_notify(call_nr)) {
 		/* A task ipc_notify()ed us */
 		switch (who_e) {
@@ -913,6 +917,50 @@ static void service_pm(void)
   if (r != OK)
 	panic("service_pm: ipc_send failed: %d", r);
 }
+
+
+/*===========================================================================*
+ *				service_myserver				     *
+ *===========================================================================*/
+static void service_myserver(void)
+{
+  /* Process a request from PM. This function is called from the main thread, and
+   * may therefore not block. Any requests that may require blocking the calling
+   * thread must be executed in a separate thread. 
+   */
+  message m_out;
+
+  memset(&m_out, 0, sizeof(m_out));
+
+  switch (call_nr) {
+  case VFS_MYSERVER_ACQUIRE_MEM:
+    {
+      endpoint_t proc_e;
+      vir_bytes base, size;
+
+      proc_e = m_in.VFS_MYSERVER_ENDPT;
+      base = m_in.VFS_MYSERVER_BASE;
+      size = m_in.VFS_MYSERVER_SIZE;
+
+      cp_grant_id_t grant_id = myserver_acquire_mem(proc_e, base, size);
+
+      m_out.m_type = VFS_MYSERVER_ACQUIRE_MEM_REPLY;
+      m_out.VFS_MYSERVER_ENDPT = proc_e;
+      m_out.VFS_MYSERVER_GRANT_ID = grant_id;
+    }
+    break;
+  default:
+    printf("VFS: don't know how to handle MYSERVER request %d\n", call_nr);
+
+    return;
+  }
+
+  int r = ipc_send(MYSERVER_PROC_NR, &m_out);
+  if (r != OK)
+    panic("service_myservice: ipc_send failed: %d", r);
+}
+
+
 
 
 /*===========================================================================*

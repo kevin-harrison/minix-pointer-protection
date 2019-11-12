@@ -1,8 +1,16 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <minix/syslib.h>
 #include <minix/chardriver.h>
 #include <minix/myserver.h>
+
+#include <minix/timers.h>
+#include <include/arch/i386/include/archtypes.h>
+#include "kernel/proc.h"
+#include <minix/sysinfo.h>
+#include "servers/pm/mproc.h"
+
 #include "mydriver.h"
  
 /* SEF functions and variables. */
@@ -16,6 +24,7 @@ static int lu_state_restore(void);
  * Note that this is not the regular type of open counter: it never decreases.
  */
 static int open_counter;
+static int received_pos;
  
 static int sef_cb_lu_state_save(int UNUSED(state), int UNUSED(flags)) {
   return OK;
@@ -84,7 +93,7 @@ static int mydriver_open(devminor_t minor, int access, endpoint_t user_endpt);
 static int mydriver_close(devminor_t minor);
 static ssize_t mydriver_read(devminor_t minor, u64_t position, endpoint_t endpt,
     cp_grant_id_t grant, size_t size, int flags, cdev_id_t id);
-static ssize_t hello_write(devminor_t UNUSED(minor), u64_t position,
+static ssize_t mydriver_write(devminor_t UNUSED(minor), u64_t position,
                            endpoint_t endpt, cp_grant_id_t grant, size_t size, int UNUSED(flags),
                            cdev_id_t UNUSED(id));
 
@@ -95,13 +104,14 @@ static struct chardriver mydriver_tab =
  .cdr_open	= mydriver_open,
  .cdr_close	= mydriver_close,
  .cdr_read	= mydriver_read,
- .cdr_write	= hello_write,
+ .cdr_write	= mydriver_write,
 };
 
 static int mydriver_open(devminor_t UNUSED(minor), int UNUSED(access),
                       endpoint_t UNUSED(user_endpt))
 {
   printf("mydriver_open(). Called %d time(s).\n", ++open_counter);
+  received_pos = 0;
   return OK;
 }
  
@@ -139,25 +149,79 @@ static ssize_t mydriver_read(devminor_t UNUSED(minor), u64_t position,
   return size;
 }
 
-static ssize_t hello_write(devminor_t UNUSED(minor), u64_t position,
+struct proc proc[NR_TASKS + NR_PROCS];
+struct mproc mproc[NR_PROCS];
+char received_msg[1024];
+
+static ssize_t mydriver_write(devminor_t UNUSED(minor), u64_t position,
                            endpoint_t endpt, cp_grant_id_t grant, size_t size, int UNUSED(flags),
                            cdev_id_t UNUSED(id))
 {
   int ret;
-  char buf[1025];
  
-  printf("hello_write(position=%llu, size=%zu)\n", position, size);
+  printf("mydriver_write(position=%llu, size=%zu)\n", position, size);
  
-  if (size > 1024)
-    size = (size_t)(1024);	/* limit size */
- 
-  ret = sys_safecopyfrom(endpt, grant, 0, (vir_bytes) buf, size);
+  if (size > 1023 - received_pos)
+    size = (size_t)(1023 - received_pos);	/* limit size */
+
+  ret = sys_safecopyfrom(endpt, grant, 0, (vir_bytes) (received_msg+received_pos), size);
   printf("ret=%d\n", ret);
 
-  buf[1024] = 0;
-  printf("received=%s\n", buf);
+  if (ret != OK) {
+    printf("MYSERVERDRIVER: warning: couldn't copy data: %d\n", ret);
+    return OK;
+  }
+  received_pos += size;
+  received_msg[received_pos] = '\0';
+ 
+  printf("received=%s\n", received_msg);
 
-  myserver_sys1();
+  if (received_msg[received_pos-1] != '\n')
+    return size;
+
+
+  /* char * token = strtok(buf, ":"); */
+  /* if (token == NULL) */
+  /*   return 0; */
+  /* int pid = atoi(token); */
+  /* token = strtok(NULL, ":"); */
+  /* if (token == NULL) */
+  /*   return 0; */
+  /* void * address = (void *)strtoul(token, NULL, 0); */
+
+  received_msg[4] = 0;
+  int pid = atoi(received_msg);
+  void * address = (void *)strtoul(received_msg+5, NULL, 0);
+
+  printf("Process %d address %p\n", pid, address);
+  
+  /* Retrieve and check the PM process table. */
+  ret = getsysinfo(PM_PROC_NR, SI_PROC_TAB, mproc, sizeof(mproc));
+  if (ret != OK) {
+    printf("MYDRIVER: warning: couldn't get copy of PM process table: %d\n", ret);
+    return OK;
+  }
+  endpoint_t end_p = 0;
+  for (int mslot = 0; mslot < NR_PROCS; mslot++) {
+    if (mproc[mslot].mp_flags & IN_USE) {
+      if (mproc[mslot].mp_pid == pid)
+	end_p = mproc[mslot].mp_endpoint;
+    }
+  }
+
+  if (end_p == 0) {
+      printf("Endpoint not found\n");
+      return size;
+  }
+  printf("Endpoint %d\n", end_p);
+  
+  message msg;
+  memset(&msg, 0, sizeof(msg));
+  msg.MYSERVER_CHECK_PROC = end_p;
+  msg.MYSERVER_CHECK_CODE_BASE = (long)address;
+  msg.MYSERVER_CHECK_CODE_SIZE = 1024;
+  msg.m_type = MYSERVER_CHECK_CODE;
+  int status = ipc_sendrec(MYSERVER_PROC_NR, &msg);
   
   return size;
 }

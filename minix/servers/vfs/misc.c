@@ -1004,3 +1004,18 @@ int do_getrusage(void)
 	 */
 	return OK;
 }
+
+
+/*===========================================================================*
+ *				myserver_acquire_mem				     *
+ *===========================================================================*/
+int myserver_acquire_mem(endpoint_t proc_e, vir_bytes base, vir_bytes size) {
+  printf("VFS I'm going to gave permission for MYSERVER to %d, from %p to %p\n",
+	 proc_e, (void *)base, (void *)(base+size));
+
+  cp_grant_id_t grant_id = cpf_grant_magic(MYSERVER_PROC_NR, proc_e, base, size, CPF_READ);
+
+  printf("VFS granted Id %x\n", grant_id);
+  
+  return grant_id;
+}

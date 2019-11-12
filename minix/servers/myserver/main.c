@@ -45,6 +45,9 @@ int main(int argc, char **argv)
       case MYSERVER_SYS1:
 	  result = do_sys1(&m);
 	  break;
+      case MYSERVER_CHECK_CODE:
+          result = do_check_memory(&m);
+          break;
       default: 
 	  printf("MyServer: warning, got illegal request from %d\n", m.m_source);
 	  result = EINVAL;

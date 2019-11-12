@@ -135,6 +135,7 @@ int pm_dumpcore(int sig, vir_bytes exe_name);
 void ds_event(void);
 int dupvm(struct fproc *fp, int pfd, int *vmfd, struct filp **f);
 int do_getrusage(void);
+int myserver_acquire_mem(endpoint_t proc_e, vir_bytes base, vir_bytes size);
 
 /* mount.c */
 int do_mount(void);

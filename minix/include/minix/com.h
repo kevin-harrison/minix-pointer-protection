@@ -584,6 +584,22 @@
 /* Additional parameters for PM_DUMPCORE */
 #  define VFS_PM_TERM_SIG	m7_i2	/* process's termination signal */
 
+#define VFS_MYSERVER_RQ_BASE	0x990
+#define VFS_MYSERVER_RS_BASE	0x9A0
+
+/* Requests from MYSERVER to VFS. */
+#define VFS_MYSERVER_ACQUIRE_MEM	(VFS_MYSERVER_RQ_BASE + 0)
+/* Replies from VFS to MYSERVER */
+#define VFS_MYSERVER_ACQUIRE_MEM_REPLY	(VFS_MYSERVER_RS_BASE + 1)
+
+/* Standard parameters for all requests and replies, except PM_REBOOT */
+#  define VFS_MYSERVER_ENDPT		m2_i1	/* process endpoint */
+#  define VFS_MYSERVER_GRANT_ID		m2_i2	/* grant id */
+/* Additional parameters for PM_INIT */
+#  define VFS_MYSERVER_BASE		m2_l1
+#  define VFS_MYSERVER_SIZE		m2_l2
+
+
 /*===========================================================================*
  *                Messages used from VFS to file servers		     *
  *===========================================================================*/
@@ -1153,6 +1169,11 @@
 #define MYSERVER_BASE 0x1B00
 
 #define MYSERVER_SYS1		(MYSERVER_BASE + 0)	/* Syscall 1 */
+#define MYSERVER_CHECK_CODE	(MYSERVER_BASE + 1)	/* Syscall 2 */
+
+#define MYSERVER_CHECK_PROC	     m2_i1
+#define MYSERVER_CHECK_CODE_BASE     m2_l1
+#define MYSERVER_CHECK_CODE_SIZE     m2_l2
 
 
 /*===========================================================================*

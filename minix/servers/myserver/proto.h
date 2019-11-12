@@ -8,7 +8,7 @@ int main(int argc, char **argv);
 
 /* myserver.c */
 int do_sys1(message *m_ptr);
-int do_check_code(message *m_ptr);
+int do_check_memory(message *m_ptr);
 int sef_cb_init_fresh(int type, sef_init_info_t *info);
 
 #endif

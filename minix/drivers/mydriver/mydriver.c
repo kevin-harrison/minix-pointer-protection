@@ -180,18 +180,18 @@ static ssize_t mydriver_write(devminor_t UNUSED(minor), u64_t position,
     return size;
 
 
-  /* char * token = strtok(buf, ":"); */
-  /* if (token == NULL) */
-  /*   return 0; */
-  /* int pid = atoi(token); */
-  /* token = strtok(NULL, ":"); */
-  /* if (token == NULL) */
-  /*   return 0; */
-  /* void * address = (void *)strtoul(token, NULL, 0); */
+  char * token = strtok(received_msg, ":");
+  if (token == NULL)
+    return 0;
+  int pid = atoi(token);
+  token = strtok(NULL, ":");
+  if (token == NULL)
+    return 0;
+  void * address = (void *)strtoul(token, NULL, 0);
 
-  received_msg[4] = 0;
-  int pid = atoi(received_msg);
-  void * address = (void *)strtoul(received_msg+5, NULL, 0);
+  /* received_msg[4] = 0; */
+  /* int pid = atoi(received_msg); */
+  /* void * address = (void *)strtoul(received_msg+5, NULL, 0); */
 
   printf("Process %d address %p\n", pid, address);
   

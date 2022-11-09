@@ -24,3 +24,4 @@ To compile just run `bash <REPO-DIRECTORY>/releasetools/x86_hdimage.sh`. A comma
 
 Christopher Gauffin\
 Jesper Lagnelöv\
+Joseph Johansson\

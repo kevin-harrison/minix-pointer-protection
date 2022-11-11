@@ -20,6 +20,13 @@ diff -u --recursive dist.orig/gold/errors.h dist/gold/errors.h
 ## Cross-compiling notes
 To compile just run `bash <REPO-DIRECTORY>/releasetools/x86_hdimage.sh`. A command line for running the result in a KVM virtual machine is printed at the end of the process.
 
+## Toolset
+
+In order to use the tools generated from compilation update the path first with:
+```bash 
+. ./set_path
+```
+
 ## Contributors
 
 Christopher Gauffin\

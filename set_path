@@ -1,0 +1,12 @@
+#!/bin/bash
+# Adds tooldir*/bin to path
+
+MINIX_SRC="$(readlink -f "$(dirname "$BASH_SOURCE")")"
+TOOLDIR="$(printf "$MINIX_SRC"/../obj.i386/tooldir*)"
+if ! [[ "$PATH" =~ "$TOOLDIR/bin" ]]
+then
+    PATH="$TOOLDIR/bin:$PATH"
+fi
+export PATH
+unset MINIX_SRC
+unset TOOLDIR

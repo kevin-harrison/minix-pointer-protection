@@ -1,12 +1,122 @@
 #!/bin/bash
 # Adds tooldir*/bin to path
 
-MINIX_SRC="$(readlink -f "$(dirname "$BASH_SOURCE")")"
-TOOLDIR="$(printf "$MINIX_SRC"/../obj.i386/tooldir*)"
-if ! [[ "$PATH" =~ "$TOOLDIR/bin" ]]
+if [ "$BASH_SOURCE" == "$0" ]
 then
-    PATH="$TOOLDIR/bin:$PATH"
+    >&2 echo "$(basename "$0") should be sourced:
+    . $BASH_SOURCE"
+else
+    MINIX_SRC="$(readlink -f "$(dirname "$BASH_SOURCE")")"
+    : ${TOOLDIR:="$(printf "$MINIX_SRC"/../obj.i386/tooldir*)"}
+
+    if ! [ -d $TOOLDIR/bin ]
+    then
+        >&2 echo "Toolchain directory not found, you probably need to run:
+    $MINIX_SRC/releasetools/x86_hdimage.sh"
+    else
+        echo "Using toolchain directory: $TOOLDIR"
+
+        if ! [[ "$PATH" =~ "$TOOLDIR/bin:" ]]
+        then
+            PATH="$TOOLDIR/bin:$PATH"
+        fi
+        export PATH
+
+    fi
 fi
-export PATH
-unset MINIX_SRC
-unset TOOLDIR
+
+
+if [ -z "$TOOLDIR" ]
+then
+    >&2 echo "$0: \$TOOLDIR is not set/null."
+    exit 1
+fi
+
+# Because "qq" is a rather unique prefix
+TOOL_PREFIX="qq"
+
+echo "Installing ${TOOL_PREFIX}-tools."
+
+MMAKE="$TOOLDIR/bin/${TOOL_PREFIX}make"
+MMAKEGAME="$TOOLDIR/bin/${TOOL_PREFIX}make-game"
+MRUN="$TOOLDIR/bin/${TOOL_PREFIX}run"
+MREBUILD="$TOOLDIR/bin/${TOOL_PREFIX}rebuild"
+MREBUILD_SLOW="$TOOLDIR/bin/${TOOL_PREFIX}rebuild-slow"
+MGREP="$TOOLDIR/bin/${TOOL_PREFIX}grep"
+
+################################################################################
+#                                  qqmake                                      #
+################################################################################
+ln -s -f "$TOOLDIR/bin/nbmake-i386" "$MMAKE"
+
+
+################################################################################
+#                               qqmake-game                                    #
+################################################################################
+cat > "$MMAKEGAME" <<EOF
+#!/bin/bash
+if [[ -z \$1 ]]
+then
+    echo "Need to choose a game in $MINIX_SRC/games to compile."
+else
+    GAME=\$1
+    if ! [ -d $MINIX_SRC/games/\$GAME ]
+    then
+        echo "No directory found at $MINIX_SRC/games/\$GAME"
+    else
+        export CREATE_IMAGE_ONLY=1
+        (cd $MINIX_SRC/games/\$GAME && nbmake-i386)
+        cp ../obj.i386/games/\$GAME/\$GAME ../obj.i386/destdir.i386/usr/games/\$GAME
+        rm ../obj.i386/releasedir/i386/binary/sets/minix-games.tgz
+        ./build.sh -j 3 -m i386 -O ../obj.i386 -D ../obj.i386/destdir.i386 -U -u sets
+        ./releasetools/x86_hdimage.sh
+    fi
+fi
+EOF
+chmod +x "$MMAKEGAME"
+
+
+################################################################################
+#                                  qqrun                                       #
+################################################################################
+cat > "$MRUN" <<EOF
+#!/bin/bash
+qemu-system-i386 --enable-kvm -m 256 -hda "$MINIX_SRC/minix_x86.img"
+EOF
+chmod +x "$MRUN"
+
+################################################################################
+#                                  qqrebuild                                   #
+################################################################################
+cat > "$MREBUILD" <<EOF
+#!/bin/bash
+cd "$MINIX_SRC" && time ./releasetools/x86_hdimage.sh
+EOF
+chmod +x "$MREBUILD"
+
+################################################################################
+#                               qqrebuild-slow                                 #
+################################################################################
+cat > "$MREBUILD_SLOW" <<EOF
+#!/bin/bash
+set -e
+# Remove everything but tooldir from build directory
+find "$TOOLDIR/.." -mindepth 1 -maxdepth 1 ! -name tooldir* -exec rm -rf {} +
+# Ensures toolchain isn't rebuilt
+touch "$TOOLDIR/bin/nbmake"
+cd "$MINIX_SRC" && time ./releasetools/x86_hdimage.sh
+EOF
+chmod +x "$MREBUILD_SLOW"
+
+################################################################################
+#                                  qqgrep                                      #
+################################################################################
+cat > "$MGREP" <<EOF
+#!/bin/bash
+set -e
+REGEX="(\.include[[:space:]]*\"|SUBDIR[[:space:]]*\+?=).+\K"
+# NOTE: Excluding ./external since probably irrelevant
+find "$MINIX_SRC" -iname "makefile*" -exec \\
+    grep --color --exclude="./external*" -P "\$REGEX""\$@" {} +
+EOF
+chmod +x "$MGREP"

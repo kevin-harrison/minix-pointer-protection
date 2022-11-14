@@ -28,6 +28,7 @@ After you have compiled the toolchain for the first time, you can run:
 This will add the toolchain bin directory to your path, giving you direct access to the following tools:
 
 - `qqmake` - Make for cross-compilation.
+- `qqmake-game` - Reberto's faster compliation announcement (only works for programs in /usr/games/)
 - `qqrun` - Run using qemu.
 - `qqrebuild` - Rebuilds using the `x86_hdimage.sh` script without removing previous build.
 - `qqrebuild-slow` - Like `qqrebuild`, but removes everything of the previous build except for the toolchain. This should always work, but typically recompiles a lot more than necessary.

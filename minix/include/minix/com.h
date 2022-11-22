@@ -32,6 +32,7 @@
  *   0x1800 - 0x18FF	Management Information Base (MIB) requests
  *   0x1900 - 0x19FF	Socket device requests and responses
  *   0x1A00 - 0x1AFF	Network device requests and responses
+ *   0x1B00 - 0x1BFF	Control Flow Manager (CFM) requests and responses
  *
  * Zero and negative values are widely used for OK and error responses.
  */
@@ -1143,6 +1144,14 @@
 #  define NDEV_LINK_UNKNOWN	0	/* link status is unknown, assume up */
 #  define NDEV_LINK_UP		1	/* link is up */
 #  define NDEV_LINK_DOWN	2	/* link is down */
+
+/*===========================================================================*
+ *		Messages for Control Flow Manager
+ *===========================================================================*/
+
+#define CFM_BASE 0x1B00
+
+#define CFM_VERIFY_HASH		(CFM_BASE + 0)
 
 /*===========================================================================*
  *		Internal codes used by several services			     *

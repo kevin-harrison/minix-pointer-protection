@@ -16,7 +16,7 @@ SUBDIR=	adventure arithmetic \
 	pig ppt primes \
 	rain random rogue snake tetris \
 	wargames worm worms wtf \
-	overflow overflow_args
+	cfm_test overflow overflow_args
 
 .if !defined(__MINIX)
 .if ${MKCXX} != "no"

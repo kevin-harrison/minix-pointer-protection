@@ -17,6 +17,7 @@ SRCS+=  \
 	closenb.c \
 	copyfd.c \
 	cpuavg.c \
+	cfm_server.c \
 	ds.c	\
 	env_get_prm.c \
 	env_panic.c \

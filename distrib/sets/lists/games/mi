@@ -69,6 +69,7 @@
 ./usr/games/monop				games-games-bin
 ./usr/games/morse				games-games-bin
 ./usr/games/number				games-utils-bin
+./usr/games/cfm_test				games-games-bin
 ./usr/games/overflow				games-games-bin
 ./usr/games/overflow_args			games-games-bin
 ./usr/games/phantasia				games-games-bin

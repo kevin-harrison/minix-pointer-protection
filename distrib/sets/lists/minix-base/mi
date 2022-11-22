@@ -270,6 +270,7 @@
 ./sbin/sysctl                                           minix-base
 ./service                                               minix-base
 ./service/asr                                           minix-base
+./service/cfm                                           minix-base
 ./service/devman                                        minix-base
 ./service/ds                                            minix-base
 ./service/ext2                                          minix-base

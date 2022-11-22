@@ -26,45 +26,42 @@ echo "Installing ${TOOL_PREFIX}-tools."
 
 MMAKE="$TOOLDIR/bin/${TOOL_PREFIX}make"
 MMAKEGAME="$TOOLDIR/bin/${TOOL_PREFIX}make-game"
+MMAKESERVER="$TOOLDIR/bin/${TOOL_PREFIX}make-server"
 MRUN="$TOOLDIR/bin/${TOOL_PREFIX}run"
 MREBUILD="$TOOLDIR/bin/${TOOL_PREFIX}rebuild"
 MREBUILD_SLOW="$TOOLDIR/bin/${TOOL_PREFIX}rebuild-slow"
 MGREP="$TOOLDIR/bin/${TOOL_PREFIX}grep"
 
-################################################################################
-#                               qqmake-path                                    #
-################################################################################
-
-qqmake-path() {
-    if [[ -z \$1 ]]
-    then
-        echo "Enter a path to compile from $MINIX_SRC."
-    else
-        SRC_PATH=$1
-        SET_NAME=$2
-        if ! [ -d $MINIX_SRC\$SRC_PATH ]
-        then
-            echo "No directory found at $SRC_PATH"
-        else
-            if ! [ -d $SET_NAME ]
-            then
-                echo "Define the name of the set to delete"
-            else
-                export CREATE_IMAGE_ONLY=1
-                (cd \$SRC_PATH && nbmake-i386)
-                cp ../obj.i386/\$MINIX_SRC\$SRC_PATH ../obj.i386/destdir.i386/usr/\$SRC_PATH
-                rm ../obj.i386/releasedir/i386/binary/sets/$2
-                ./build.sh -j 3 -m i386 -O ../obj.i386 -D ../obj.i386/destdir.i386 -U -u sets
-                ./releasetools/x86_hdimage.sh
-        fi
-    fi
-}
 
 ################################################################################
 #                                  qqmake                                      #
 ################################################################################
 ln -s -f "$TOOLDIR/bin/nbmake-i386" "$MMAKE"
 
+################################################################################
+#                               qqmake-server                                  #
+################################################################################
+
+cat > "$MMAKESERVER" <<EOF
+#!/bin/bash
+if [[ -z \$1 ]]
+then
+    echo "Enter a server name."
+else
+    SERVER_NAME=\$1
+    SERVER_PATH=MINIX_SRC/minix/servers/\$SERVER_NAME
+    if ! [ -d $SERVER_PATH ]
+    then
+        echo "No directory found at $SERVER_PATH"
+    else
+        export CREATE_IMAGE_ONLY=1
+        (cd $SERVER_PATH && nbmake-i386) &&
+        ./build.sh -j 3 -m i386 -O ../obj.i386 -D ../obj.i386/destdir.i386 -U -u sets &&
+        ./releasetools/x86_hdimage.sh
+    fi
+fi
+EOF
+chmod +x "$MMAKESERVER"
 
 ################################################################################
 #                               qqmake-game                                    #

@@ -561,6 +561,30 @@ malloc_init(void)
     if (page_dir == MAP_FAILED)
 	wrterror("mmap(2) failed, check limits.\n");
 
+  
+    /* char random_byte[1];
+    FILE *fp;
+    fp = fopen("/dev/urandom", "r");
+    fread(&random_byte, 1, 1, fp);
+    fclose(fp);
+    size_t random_int = (int) random_byte;
+    //printf("%d\n", random_int);
+    sbrk((intptr_t)(malloc_pagesize * random_int)); */
+    
+
+    //#ifndef MALLOC_NO_SYSCALLS
+    //char random_byte[1];
+    //readlink("/dev/urandom", random_byte, sizeof random_byte - 1);
+    //size_t random_int = (size_t) random_byte % 10;
+    //sbrk((intptr_t)(malloc_pagesize * random_int));
+    //#endif 
+
+    //sbrk((intptr_t)(malloc_pagesize * 5));
+    
+    //srand( time(NULL) );                            // need to include time.h
+    //sbrk(malloc_pagesize * (rand() % 1024 + 1));    // when qqrebuild: doesnt recognize rand() despite #include "rand.c"
+    
+
     /*
      * We need a maximum of malloc_pageshift buckets, steal these from the
      * front of the page_directory;
@@ -583,7 +607,6 @@ malloc_init(void)
      * We can sbrk(2) further back when we keep this on a low address.
      */
     px = imalloc(sizeof *px);
-
     errno = serrno;
 }
 

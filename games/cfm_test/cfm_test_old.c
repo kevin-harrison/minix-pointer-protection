@@ -1,6 +1,5 @@
 #include <stdio.h>
 #include <stdint.h>
-#include <string.h>
 #include <stdlib.h>
 
 uint64_t cfm_store_call(char const *fun, uint64_t *address);
@@ -21,33 +20,35 @@ void cfm_verify_hash(char const *fun, uint64_t *address, uint64_t hash) {
     }
 }
 
-// The variable will automatically push the hash on the stack
-#define STORE uint64_t hash = cfm_store_call(__FUNCTION__, __builtin_return_address(0));
-
-// We can directly use the local variable on the current stackframe
-#define VERIFY cfm_verify_hash(__FUNCTION__,  __builtin_return_address(0), hash);
-
-void print_pwd(void) {
-    printf("My password is admin\n");
+uint64_t* current_ip() {
+    return __builtin_return_address(0);
 }
 
-__attribute__ ((no_stack_protector))
-void foo(char *input) {   
-    /* STORE; */
+void bar() {   
 
-    // foo stuff
-    char buffer[8];
-    strcpy(buffer, input);
-    printf("My name is %s\n", buffer);
+    // bar stuff
+    // int a = 1;
+    // int b = 2;
+    // int c = 3;
 
-    /* VERIFY; */
+    uint64_t *rbp; 
+    asm ("mov %%rbp, %0" : "=r" (rbp) );
+    cfm_verify_hash("bar", __builtin_return_address(0), *(rbp+3));
     return;
 }
 
-int main(int argc, char *argv[]) {
+void foo() {
+    uint64_t ip = (uint64_t) current_ip();
+    ip += 45;
+    uint64_t hash = cfm_store_call("bar", (uint64_t*) ip);
 
-    foo(argv[1]);
+    bar();
 
+    return;
+}
+
+int main(void) {
+    foo();
     fprintf(stdout, "Exited gracefully...\n");
     return 0; 
 }

@@ -31,12 +31,11 @@ void print_pwd(void) {
     printf("My password is admin\n");
 }
 
-__attribute__ ((no_stack_protector))
 void foo(char *input) {   
     /* STORE; */
 
     // foo stuff
-    char buffer[8];
+    char buffer[64];
     strcpy(buffer, input);
     printf("My name is %s\n", buffer);
 

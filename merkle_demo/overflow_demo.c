@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
 
   strcpy(state.buffer, argv[2]);
   printf("addresses %p %p %p %p \n", &pwd_diff, &(state.x), state.x, state.buffer);
-  VERIFY_POINTER(state.x)
+  VALIDATE_POINTER(state.x)
   *(state.x) = atoi(argv[3]);
 
   if (pwd_diff != 0)

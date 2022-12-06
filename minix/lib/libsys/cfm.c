@@ -1,4 +1,4 @@
-#include <minix/cfm_server.h>
+#include <minix/cfm.h>
 #include <string.h>
 
 #include "syslib.h"

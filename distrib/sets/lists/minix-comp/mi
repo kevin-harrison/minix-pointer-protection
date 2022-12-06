@@ -1185,7 +1185,7 @@
 ./usr/include/minix/bpf.h                               minix-comp
 ./usr/include/minix/btrace.h                            minix-comp
 ./usr/include/minix/callnr.h                            minix-comp
-./usr/include/minix/cfm_server.h                        minix-comp
+./usr/include/minix/cfm.h                               minix-comp
 ./usr/include/minix/chardriver.h                        minix-comp
 ./usr/include/minix/clkconf.h                           minix-comp
 ./usr/include/minix/com.h                               minix-comp

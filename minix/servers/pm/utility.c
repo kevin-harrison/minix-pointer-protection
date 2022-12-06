@@ -117,6 +117,7 @@ int pm_isokendpt(int endpoint, int *proc)
 	return OK;
 }
 
+// CHANGED: temp?
 /*===========================================================================*
  *				tell_vfs			 	     *
  *===========================================================================*/
@@ -137,6 +138,28 @@ message *m_ptr;
 
   rmp->mp_flags |= VFS_CALL;
 }
+
+/*===========================================================================*
+ *				tell_cfm			 	     *
+ *===========================================================================*/
+void tell_cfm(rmp, m_ptr)
+struct mproc *rmp;
+message *m_ptr;
+{
+/* Send a request to CFM, without blocking.
+ */
+  int r;
+
+  if (rmp->mp_flags & EVENT_CALL)//(VFS_CALL | EVENT_CALL))
+	panic("tell_cfm: not idle: %d", m_ptr->m_type);
+
+  r = asynsend3(CFM_PROC_NR, m_ptr, AMF_NOREPLY);
+  if (r != OK)
+  	panic("unable to send to CFM: %d", r);
+
+  //rmp->mp_flags |= VFS_CALL;
+}
+
 
 /*===========================================================================*
  *				set_rusage_times		 	     *

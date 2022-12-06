@@ -27,9 +27,37 @@
 #include <libexec.h>
 #include <sys/ptrace.h>
 #include "mproc.h"
+#include <minix/cfm.h>
 
 #define ESCRIPT	(-2000)	/* Returned by read_header for a #! script. */
 #define PTRSIZE	sizeof(char *) /* Size of pointers in argv[] and envp[]. */
+
+// CHANGED: Added function to be triggered by _syscall. Eventually should reply message to CFM
+/*===========================================================================*
+ *				do_cfm					     *
+ *===========================================================================*/
+int
+do_cfm(void)
+{
+	message m;
+	int result;
+
+	printf("Called do_cfm\n");
+
+
+	/* Forward call to VFS */
+	//memset(&m, 0, sizeof(m));
+	//m.m_type = VFS_PM_EXEC;								// need to change to syscall stored in message m_in.message?.m_type (will be an int)
+	//
+	//result = tell_cfm(mp, &m);
+	//return result
+
+	int ret = cfm_verify_hash(123);
+	return ret;
+
+	/* Do not reply */
+	//return SUSPEND;
+}
 
 /*===========================================================================*
  *				do_exec					     *

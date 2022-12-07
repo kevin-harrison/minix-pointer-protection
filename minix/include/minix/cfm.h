@@ -7,6 +7,6 @@
 /* monitor_server.c */
 
 /* U32 */
-int cfm_verify_hash(int address);
+int cfm_get_hash(uint8_t* data, unsigned int dataLen, uint8_t* hash);
 
 #endif /* _MINIX_CFM_SERVER_H */

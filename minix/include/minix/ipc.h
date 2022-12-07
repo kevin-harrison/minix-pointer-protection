@@ -2400,6 +2400,12 @@ typedef struct {
 } mess_vmmcp_reply;
 _ASSERT_MSG_SIZE(mess_vmmcp_reply);
 
+typedef struct {
+	uint8_t data[52];
+	unsigned int dataLen;
+} mess_cfm_sendrecv;
+_ASSERT_MSG_SIZE(mess_cfm_sendrecv);
+
 typedef struct noxfer_message {
 	endpoint_t m_source;		/* who sent the message */
 	int m_type;			/* what kind of message is it */
@@ -2666,6 +2672,7 @@ typedef struct noxfer_message {
 		mess_vm_vfs_mmap	m_vm_vfs_mmap;
 		mess_vmmcp		m_vmmcp;
 		mess_vmmcp_reply	m_vmmcp_reply;
+		mess_cfm_sendrecv	m_cfm_sendrecv;
 
 		u8_t size[56];	/* message payload may have 56 bytes at most */
 	};

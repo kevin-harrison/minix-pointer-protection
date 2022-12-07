@@ -1176,6 +1176,7 @@
 ./usr/include/menu.h                                    minix-comp
 ./usr/include/minix                                     minix-comp
 ./usr/include/minix/acpi.h                              minix-comp
+./usr/include/minix/aes256.h                            minix-comp
 ./usr/include/minix/audio_fw.h                          minix-comp
 ./usr/include/minix/bdev.h                              minix-comp
 ./usr/include/minix/bitmap.h                            minix-comp

@@ -41,8 +41,8 @@ int main(int argc, char **argv)
     }
     /*  */
     switch (callnr) {
-      case CFM_VERIFY_HASH:
-        result = do_verify_hash(&m);
+      case CFM_GET_HASH:
+        result = do_cfm_get_hash(&m);
         break;
       default: 
         printf("DS: warning, got illegal request from %d\n", m.m_source);

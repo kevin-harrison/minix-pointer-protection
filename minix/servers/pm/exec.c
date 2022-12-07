@@ -44,16 +44,8 @@ do_cfm(void)
 
 	printf("Called do_cfm\n");
 
-
-	/* Forward call to VFS */
-	//memset(&m, 0, sizeof(m));
-	//m.m_type = VFS_PM_EXEC;								// need to change to syscall stored in message m_in.message?.m_type (will be an int)
-	//
-	//result = tell_cfm(mp, &m);
-	//return result
-
-	int ret = cfm_verify_hash(123);
-	return ret;
+	/* int ret = cfm_get_hash(123); */
+	return 1;
 
 	/* Do not reply */
 	//return SUSPEND;

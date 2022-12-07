@@ -5,8 +5,14 @@
 
 int main(int argc, char *argv[])
 {
-  int ret = cfm_verify_hash(123);
-  printf("cfm_verify_hash returned %d\n", ret);
+  uint8_t data[] = {'X'};
+  unsigned dataLen = 1;
+  uint8_t hash[16];
+
+  cfm_get_hash(data, dataLen, hash);
+
+  printf("cfm_get_hash returned hash %c\n", hash[0]);
+
   while(1);
 
   return 0;

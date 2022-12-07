@@ -3,7 +3,8 @@
 
 #include "syslib.h"
 
-static int do_invoke_cfm_server(message *m, int type)
+
+static int cfm_pass_message(message *m, int type)
 {
 	int r;
 
@@ -12,10 +13,21 @@ static int do_invoke_cfm_server(message *m, int type)
 	return r;
 }
 
-int cfm_verify_hash(int address)
-{
+int cfm_get_hash(uint8_t* data, unsigned int dataLen, uint8_t *hash) {
+
 	message m;
 
 	memset(&m, 0, sizeof(m));
-	return do_invoke_cfm_server(&m, CFM_VERIFY_HASH);
+	memcpy(m.m_cfm_sendrecv.data, data, dataLen);
+	m.m_cfm_sendrecv.dataLen = dataLen;
+
+	if(cfm_pass_message(&m, CFM_GET_HASH) != 0) {
+		return -1;
+	}
+
+	unsigned int hashLen = m.m_cfm_sendrecv.dataLen;
+	memcpy(hash, m.m_cfm_sendrecv.data, hashLen);
+
+	return 0;
 }
+

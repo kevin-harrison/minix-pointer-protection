@@ -10,6 +10,7 @@ CFLAGS+=	-fno-builtin
 .include "arch/${MACHINE_ARCH}/Makefile.inc"
 
 SRCS+=  \
+	aes256.c \
 	alloc_util.c \
 	assert.c \
 	asynsend.c \

@@ -4,6 +4,7 @@ INCSDIR= /usr/include/minix
 
 INCS+=	paths.h param.h
 INCS+=	acpi.h audio_fw.h bitmap.h \
+	aes256.h \
 	bdev.h blockdriver.h blockdriver_mt.h \
 	board.h bpf.h btrace.h \
 	callnr.h chardriver.h clkconf.h com.h \

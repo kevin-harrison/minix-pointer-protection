@@ -15,7 +15,6 @@ int do_proc_event_reply(void);
 void publish_event(struct mproc *rmp);
 
 /* exec.c */
-int do_cfm(void);	// CHANGED: added prototype do other programs can call
 int do_exec(void);
 int do_newexec(void);
 int do_execrestart(void);

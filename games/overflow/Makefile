@@ -5,4 +5,7 @@
 PROG=	overflow		# Name of the program
 MAN=				# No man page
 
+LDADD+=	-lsys
+DPADD+=	${LIBSYS}
+
 .include <bsd.prog.mk>		# This is a program, not a library

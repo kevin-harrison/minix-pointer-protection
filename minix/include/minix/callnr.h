@@ -58,9 +58,8 @@
 #define PM_GETEPINFO		(PM_BASE + 45)
 #define PM_GETPROCNR		(PM_BASE + 46)
 #define PM_GETSYSINFO		(PM_BASE + 47)
-#define PM_FORWARD_CFM      (PM_BASE + 48) // CHANGED: syscall number definition (in lectures this is done in com.h instead, but seems like user-callable ones are here)
 
-#define NR_PM_CALLS		49	/* highest number from base plus one */ // CHANGED: Increased by 1 since added new call
+#define NR_PM_CALLS		48	/* highest number from base plus one */
 
 /*===========================================================================*
  *				Calls to VFS				     *

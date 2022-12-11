@@ -93,3 +93,23 @@ make_ioctl_grant(endpoint_t driver_e, endpoint_t user_e, vir_bytes buf,
 
 	return grant;
 }
+
+///////////////////
+
+// why the buffer? isnt used?
+
+int buffer;
+int do_get_magic_grant(void) {
+	size_t size = m_in.m1_i2; // The number of bytes we want to grant read access for.
+	vir_bytes buf = m_in.m_vfs_get_magic_grant.buf; // Start address to grant read from
+	endpoint_t ep_to = m_in.m_vfs_get_magic_grant.endpoint_to;
+	cp_grant_id_t grant_id;
+	grant_id = cpf_grant_magic(who_e, ep_to, buf, size, CPF_READ);
+	if(grant_id < 0) {
+    	printf("Magic grant denied\n");
+  	}
+	job_m_out.m_vfs_get_magic_grant.grant = grant_id;
+	return 0;
+}
+
+///////////////////

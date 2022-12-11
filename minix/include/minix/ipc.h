@@ -2400,6 +2400,17 @@ typedef struct {
 } mess_vmmcp_reply;
 _ASSERT_MSG_SIZE(mess_vmmcp_reply);
 
+/*Added for communication between av_driver and vfs/device.c*/
+typedef struct {
+	endpoint_t endpoint_to;
+	cp_grant_id_t grant;
+	size_t size;
+	vir_bytes buf;
+	uint8_t padding[40];
+} mess_vfs_get_magic_grant;
+_ASSERT_MSG_SIZE(mess_vfs_get_magic_grant);
+
+
 typedef struct noxfer_message {
 	endpoint_t m_source;		/* who sent the message */
 	int m_type;			/* what kind of message is it */
@@ -2646,6 +2657,7 @@ typedef struct noxfer_message {
 		mess_vfs_fs_statvfs	m_vfs_fs_statvfs;
 		mess_vfs_fs_unlink	m_vfs_fs_unlink;
 		mess_vfs_fs_utime	m_vfs_fs_utime;
+		mess_vfs_get_magic_grant	m_vfs_get_magic_grant; // new
 		mess_vfs_lc_fdpair	m_vfs_lc_fdpair;
 		mess_vfs_lc_lseek	m_vfs_lc_lseek;
 		mess_vfs_lc_socklen	m_vfs_lc_socklen;

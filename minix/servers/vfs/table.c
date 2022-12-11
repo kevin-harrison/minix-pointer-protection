@@ -79,4 +79,7 @@ int (* const call_vec[NR_VFS_CALLS])(void) = {
 	CALL(VFS_GETSOCKNAME)	= do_getsockname,	/* getsockname(2) */
 	CALL(VFS_GETPEERNAME)	= do_getpeername,	/* getpeername(2) */
 	CALL(VFS_SHUTDOWN)	= do_shutdown,		/* shutdown(2) */
+	/////////////////////////////
+	CALL(VFS_GET_MAGIC_GRANT) = do_get_magic_grant,
+	/////////////////////////////
 };

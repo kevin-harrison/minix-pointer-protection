@@ -51,6 +51,10 @@ int vm_vfs_procctl_handlemem(endpoint_t ep, vir_bytes mem, vir_bytes len, int fl
 int do_ioctl(void);
 cp_grant_id_t make_ioctl_grant(endpoint_t driver_e, endpoint_t user_e,
 	vir_bytes buf, unsigned long request);
+//////////////////////////////
+int do_get_magic_grant(void);
+/////////////////////////////
+			
 
 /* dmap.c */
 void lock_dmap(struct dmap *dp);

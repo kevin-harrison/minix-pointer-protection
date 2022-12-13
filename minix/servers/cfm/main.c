@@ -44,6 +44,12 @@ int main(int argc, char **argv)
       case CFM_GET_HASH:
         result = do_cfm_get_hash(&m);
         break;
+      case CFM_GET_MERKLE_ROOT:
+        result = do_cfm_get_merkle_root(&m);
+        break;
+      case CFM_UPDATE_MERKLE_ROOT:
+        result = do_cfm_update_merkle_root(&m);
+        break;
       default: 
         printf("DS: warning, got illegal request from %d\n", m.m_source);
         result = EINVAL;

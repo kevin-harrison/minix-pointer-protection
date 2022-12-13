@@ -1152,7 +1152,9 @@
 
 #define CFM_BASE 0x1B00
 
-#define CFM_GET_HASH		(CFM_BASE + 0)
+#define CFM_GET_HASH				(CFM_BASE + 0)
+#define CFM_GET_MERKLE_ROOT			(CFM_BASE + 1)
+#define CFM_UPDATE_MERKLE_ROOT		(CFM_BASE + 2)
 
 /*===========================================================================*
  *		Internal codes used by several services			     *

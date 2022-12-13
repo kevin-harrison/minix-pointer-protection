@@ -5,6 +5,7 @@
 
 #include <minix/merkle.h>
 #include <minix/md5.h>
+#include <minix/cfm.h>
 #include "syslib.h"
 
 
@@ -12,10 +13,10 @@ merkle_tree tree = {NULL};
 
 
 // ###########################################################################################################################################
-// ############################################################ PRIVATE FUNCTIONS ############################################################
+// ############################################################ UTILITY FUNCTIONS ############################################################
 // ###########################################################################################################################################
 
-/* 
+/*
 static void printBytes(unsigned char *address, int size) {
     int count;
     for (count = 0; count < size; count++){
@@ -69,40 +70,11 @@ static void print2D(merkle_tree_node *root)
 }
 */
 
+// ###########################################################################################################################################
+// ############################################################ PRIVATE FUNCTIONS ############################################################
+// ###########################################################################################################################################
 
-// Creates a new merkle tree node from pointer to and from
-static merkle_tree_node* createNode(void **from, void *to)
-{
-    merkle_tree_node *node = malloc(sizeof(merkle_tree_node));
-    node->from_address = from;
-    node->to_address = to;
-    node->left = NULL;
-    node->right = NULL;
-    node->hash = NULL;
-    return node;
-}
-
-
-// TODO: get root node from CFM server
-static char* getCFMRoot()
-{
-    //if (tree.root == NULL) tree.DEFAULT_HASH;
-    if (tree.root == NULL) {
-        char *hash = malloc(1);
-        *hash = 0;
-        return hash;
-    }
-    return tree.root->hash; // temporary solution
-}
-
-// TODO: update root node in CFM server
-static void updateCFMRoot()
-{
-    //memcpy hash and send to CFM
-    return;
-}
-
-/*
+ /*
 static char* naiveHash(merkle_tree_node *node)
 {
     // Empty node hashes to empty string
@@ -132,13 +104,51 @@ static char* naiveHash(merkle_tree_node *node)
 }
 */
 
+
+// Creates a new merkle tree node from pointer to and from
+static merkle_tree_node* createNode(void **from, void *to)
+{
+    merkle_tree_node *node = malloc(sizeof(merkle_tree_node));
+    node->from_address = from;
+    node->to_address = to;
+    node->left = NULL;
+    node->right = NULL;
+    node->hash = NULL;
+    return node;
+}
+
+
+// Get the current root node's hash from the CFM server
+static void getCFMRoot(char* hash_buffer)
+{
+    cfm_get_merkle_root(hash_buffer);
+    return;
+}
+
+
+// Update the root node's hash in the CFM server
+static void updateCFMRoot()
+{
+    if (tree.root == NULL){
+        char default_hash[16];
+        memset(default_hash, 0, 16);
+        cfm_update_merkle_root(default_hash);
+    }
+    else cfm_update_merkle_root(tree.root->hash);
+    return;
+}
+
+
+/* Calculates the hash of a node.
+ * The hash is = hash(left child's hash || from_address || to_address || right child's hash)
+ * The hash of an empty node is defined to be all 0 bytes.
+*/
 static char* hashNode(merkle_tree_node *node)
 {
+    // Hash of empty node is 0
     char *hash = malloc(MD5_DIGEST_LENGTH);
     if (node == NULL) {   
         memset(hash, 0, MD5_DIGEST_LENGTH);
-        //printf("Null node=");
-        //printBytes(hash, 16);
         return hash;
     }
     
@@ -152,13 +162,8 @@ static char* hashNode(merkle_tree_node *node)
     if (node->right != NULL) memcpy(&input[MD5_DIGEST_LENGTH+sizeof(node->from_address)+sizeof(node->to_address)], node->right->hash, MD5_DIGEST_LENGTH);
     else                     memset(&input[MD5_DIGEST_LENGTH+sizeof(node->from_address)+sizeof(node->to_address)], 0, MD5_DIGEST_LENGTH);
     
-    
-    //printBytes(input, input_size);
-    //printf("\n");
+    // Hash with MD5
     MD5One((unsigned char *)input, input_size, (unsigned char *)hash);
-    //printf("Hash=");
-    //printBytes(hash, 16);
-    //printf("\n\n");
     return hash;
 }
 
@@ -174,7 +179,7 @@ static int getSearchPath(void **key, merkle_tree_node *path[100])
     while (path[i] != NULL) {
         if (path[i]->from_address > key) path[i+1] = path[i]->left;        // Advance left
         else if (path[i]->from_address < key) path[i+1] = path[i]->right;  // Advance right
-        else break;                                                         // Key match
+        else break;                                                        // Key match
         i++;
     }
     return i;
@@ -184,15 +189,18 @@ static int getSearchPath(void **key, merkle_tree_node *path[100])
 /* Returns 1 if the nodes from {path[0]} to {path[last_index]} are a valid Merkle proof and
  * the root matches the CFM server root. Otherwise returns 0. Also confirms that the nodes
  * in the path are not on the stack. If they were, the flow of the program may be hijacked when
- * we later dereference and write to these nodes. For ensuring the node is on the heap see:
+ * we later dereference and write to these nodes. For ensuring a node is on the heap see:
  * https://devblogs.microsoft.com/oldnewthing/20170927-00/?p=97095
 */
 static int validatePath(merkle_tree_node *path[100], int last_index)
 {
     // Validate root node
     char *root_hash = hashNode(tree.root);
-    if (memcmp(root_hash, getCFMRoot(), MD5_DIGEST_LENGTH) != 0) return 0;
+    char *cfm_root  = malloc(MD5_DIGEST_LENGTH);
+    getCFMRoot(cfm_root);
+    if (memcmp(root_hash, cfm_root, MD5_DIGEST_LENGTH) != 0) return 0;
     free(root_hash);
+    free(cfm_root);
 
     // Validate path
     int i = 1;
@@ -215,7 +223,11 @@ static int validatePath(merkle_tree_node *path[100], int last_index)
 // ############################################################ PUBLIC FUNCTIONS #############################################################
 // ###########################################################################################################################################
 
-// Adds node with a payload of a pointer to the global merkle tree 
+/* Adds node with a payload of a pointer to the global merkle tree.
+ * Cannot trust the state of memory when this function is called so the part of the merkle tree
+ * we interact with (the search path) must first be validated with the CFM server and then after
+ * adding the pointer the state of the tree must be cached in the CFM server.
+*/
 void addPointer(void **from)
 {
     void *to = *(from);
@@ -255,7 +267,11 @@ void addPointer(void **from)
 }
 
 
-// Searches for a node with from_address={from} and removes it from the global merkle tree 
+/* Searches for a node with from_address={from} and removes it from the global merkle tree.
+ * Cannot trust the state of memory when this function is called so the part of the merkle tree
+ * we interact with (the search path) must first be validated with the CFM server and then after
+ * removing the pointer the state of the tree must be cached in the CFM server.
+*/
 void removePointer(void **from) 
 {
     if (tree.root == NULL) return;
@@ -311,6 +327,7 @@ void removePointer(void **from)
         free(path[i]->hash);
         path[i]->hash = hashNode(path[i]);
     }
+    updateCFMRoot();
 }
 
 
@@ -343,14 +360,11 @@ int main()
     void *p8 = (void*)8;
     void *p9 = (void*)9;
 
-    //printf("%p->%p\n%p->%p\n%p->%p\n%p->%p\n", &p1, p1, &p2, p2, &p3, p3, &p4, p4);
-        
     validatePointer(&p4);
     removePointer(&p4);
     
     addPointer(&p4);
     removePointer(&p4);
-
     
     addPointer(&p4);
     addPointer(&p1);
@@ -361,13 +375,7 @@ int main()
     print2D(tree.root);
     printf("------------------------------------------------------------------------------------------------\n");
 
-    //printNode(tree.root);
-    //printNode(tree.root->left);
-
-
     removePointer(&p4);
-    //removePointer(&p8);
-    //removePointer(&p1);
     print2D(tree.root);
 
     printf("%d\n", validatePointer(&p1));
@@ -378,10 +386,11 @@ int main()
     printf("%d\n", validatePointer(&p6));
     printf("%d\n", validatePointer(&p7)); 
     printf("%d\n", validatePointer(&p8)); 
-    printf("%d\n", validatePointer(&p9)); 
-    
+    printf("%d\n", validatePointer(&p9));
+
     return 0;
 }
 */
+
 // TODO: Allow other types of payloads besides only pointers
 // TODO: Switch to self-balancing tree

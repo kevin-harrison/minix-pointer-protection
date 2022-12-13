@@ -26,6 +26,6 @@ int validatePointer(void **from);
 // Macros to inject into user programs
 #define STORE_POINTER(ptr) addPointer((void**)&(ptr));
 #define REMOVE_POINTER(ptr) removePointer((void**)&(ptr));
-#define VALIDATE_POINTER(ptr) if(validatePointer((void**)&(ptr)) != 1) { printf("Tried to access unverified pointer. Killing process.\n"); exit(EXIT_FAILURE);}
+#define VALIDATE_POINTER(ptr) if(validatePointer((void**)&(ptr)) != 1) { printf("Tried to access unverified pointer. Killing process.\n"); while(1); exit(EXIT_FAILURE);} // TODO: remove while when libsys-bug is fixed
  
 #endif 

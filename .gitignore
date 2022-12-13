@@ -51,3 +51,4 @@ lib/libc/compat__*
 .gdbinit
 
 minix_x86.img
+.vscode

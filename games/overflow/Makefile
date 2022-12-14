@@ -4,8 +4,6 @@
 
 PROG=	overflow		# Name of the program
 MAN=				# No man page
-
-LDADD+=	-lsys
-DPADD+=	${LIBSYS}
+SRCS= 	overflow.c merkle.c md5.c
 
 .include <bsd.prog.mk>		# This is a program, not a library

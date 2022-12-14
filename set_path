@@ -39,6 +39,7 @@ echo "Installing ${TOOL_PREFIX}-tools."
 
 MMAKE="$TOOLDIR/bin/${TOOL_PREFIX}make"
 MMAKEGAME="$TOOLDIR/bin/${TOOL_PREFIX}make-game"
+MMAKESERVER="$TOOLDIR/bin/${TOOL_PREFIX}make-server"
 MRUN="$TOOLDIR/bin/${TOOL_PREFIX}run"
 MREBUILD="$TOOLDIR/bin/${TOOL_PREFIX}rebuild"
 MREBUILD_SLOW="$TOOLDIR/bin/${TOOL_PREFIX}rebuild-slow"
@@ -75,6 +76,30 @@ fi
 EOF
 chmod +x "$MMAKEGAME"
 
+################################################################################
+#                               qqmake-server                                  #
+################################################################################
+
+cat > "$MMAKESERVER" <<EOF
+#!/bin/bash
+if [[ -z \$1 ]]
+then
+    echo "Enter a server name."
+else
+    SERVER_NAME=\$1
+    SERVER_PATH=MINIX_SRC/minix/servers/\$SERVER_NAME
+    if ! [ -d $SERVER_PATH ]
+    then
+        echo "No directory found at $SERVER_PATH"
+    else
+        export CREATE_IMAGE_ONLY=1
+        (cd $SERVER_PATH && nbmake-i386) &&
+        ./build.sh -j 3 -m i386 -O ../obj.i386 -D ../obj.i386/destdir.i386 -U -u sets &&
+        ./releasetools/x86_hdimage.sh
+    fi
+fi
+EOF
+chmod +x "$MMAKESERVER"
 
 ################################################################################
 #                                  qqrun                                       #

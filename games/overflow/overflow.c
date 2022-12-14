@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <minix/merkle.h>
+#include "merkle.h"
 
 typedef struct _state {
   char buffer[16];
@@ -29,10 +29,8 @@ int main(int argc, char *argv[])
   *(state.x) = atoi(argv[3]);
 
   if (pwd_diff != 0)
-    while (1); // TODO: remove when libsys-bug is fixed
     return 1;
 
   print_pwd();
-  while(1); // TODO: remove when libsys-bug is fixed
   return 0;
 }

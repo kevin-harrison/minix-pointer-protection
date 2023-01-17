@@ -32,21 +32,17 @@ void print_pwd(void) {
 }
 
 void foo(char *input) {   
-    /* STORE; */
-
-    // foo stuff
     char buffer[64];
     strcpy(buffer, input);
     printf("My name is %s\n", buffer);
-
-    /* VERIFY; */
     return;
 }
 
 int main(int argc, char *argv[]) {
-
     foo(argv[1]);
-
-    fprintf(stdout, "Exited gracefully...\n");
     return 0; 
 }
+
+
+
+

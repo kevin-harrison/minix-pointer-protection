@@ -1,0 +1,8 @@
+There is an example program in /games/overflow/ which demonstrates protecting a pointer from a buffer overflow. This program is taken from the course lab and modified to use our pointer protection scheme.
+
+After compiling and running MINIX:
+./usr/games/overflow 0 a 0
+Should run the lab program without a buffer overflow and therefore simply print out some memory addresses.
+
+./usr/games/overflow 0 aaaaaaaaaaaaaaaaaaaa 0
+Should overflow the 16 bytes of the state.buffer buffer causing an inconsistency in the pointer Merkle tree and therefore force the program to exit on accessing the compromised pointer.
